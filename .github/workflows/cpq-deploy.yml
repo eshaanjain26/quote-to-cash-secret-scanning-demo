@@ -1,0 +1,29 @@
+name: Deploy CPQ Package
+
+# This is the "after" version: the deployment pipeline for the same CPQ
+# package, but pulling its billing-gateway token from a GitHub Actions
+# secret instead of a source file. Nothing in this workflow file is a
+# credential -- that's the fix demonstrated in the talk, applied to the
+# third place credentials hide in a quote-to-cash stack: CI/CD.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/integration-procedures/**"
+      - "src/scripts/**"
+
+jobs:
+  deploy-cpq-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy CPQ metadata package
+        env:
+          QTC_OAUTH_TOKEN: ${{ secrets.QTC_GATEWAY_TOKEN }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+        run: |
+          echo "Deploying CPQ package with credentials sourced from GitHub Actions secrets, not from source."
+          # sf project deploy start --target-org production
+          # vlocity packDeploy -job deploy-job.yaml

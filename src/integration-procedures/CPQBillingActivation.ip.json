@@ -1,0 +1,45 @@
+{
+  "name": "CPQBillingActivation",
+  "type": "Integration Procedure",
+  "description": "Activates billing in the revenue-tool gateway once a CPQ quote is contracted. Runs after DataRaptor DRCPQContractExtract on quote acceptance.",
+  "elements": [
+    {
+      "name": "ExtractContractedQuote",
+      "type": "DataRaptor Extract Action",
+      "bundle": "DRCPQContractExtract",
+      "inputMap": {
+        "quoteId": "%quoteId%"
+      }
+    },
+    {
+      "name": "ActivateBillingAccount",
+      "type": "Remote Action",
+      "method": "POST",
+      "endpointUrl": "https://gateway.quotetocash-billing.example.com/v2/accounts/activate",
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer qtc_live_8f3a1c9d7e2b4561f0a3c8d2e9b7154a"
+      },
+      "requestBody": {
+        "accountId": "%accountId%",
+        "quoteId": "%quoteId%",
+        "billingTerms": "%billingTerms%",
+        "effectiveDate": "%effectiveDate%"
+      },
+      "responseMap": {
+        "billingAccountStatus": "status",
+        "billingAccountId": "id"
+      }
+    },
+    {
+      "name": "UpdateQuoteStatus",
+      "type": "DataRaptor Load Action",
+      "bundle": "DRCPQQuoteStatusUpdate",
+      "inputMap": {
+        "quoteId": "%quoteId%",
+        "billingAccountId": "%billingAccountId%",
+        "status": "Billing Activated"
+      }
+    }
+  ]
+}
